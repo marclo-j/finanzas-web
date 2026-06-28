@@ -25,13 +25,15 @@ export const CATEGORIES = [
   "Servicios","Ropa","Sueldo","Freelance","Inversión","Otro",
 ] as const;
 
-export const CARDS = [
-  "BBVA Débito","Banamex Crédito","HSBC Crédito","Efectivo","Ahorro CETES",
-] as const;
+export const DEBIT_CARDS      = ["BCP Débito", "Interbank Débito"] as const;
+export const CREDIT_CARDS     = ["IO Crédito", "BBVA Crédito"] as const;
+export const SAVINGS_ACCOUNTS = ["Pichincha", "Cuenta Millonaria - Interbank"] as const;
+
+export const CARDS = [...DEBIT_CARDS, ...CREDIT_CARDS, ...SAVINGS_ACCOUNTS] as const;
 
 export function fmt(n: number) {
-  return new Intl.NumberFormat("es-MX", {
-    style: "currency", currency: "MXN", minimumFractionDigits: 0,
+  return new Intl.NumberFormat("es-PE", {
+    style: "currency", currency: "PEN", minimumFractionDigits: 2,
   }).format(n);
 }
 

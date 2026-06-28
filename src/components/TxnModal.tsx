@@ -6,26 +6,22 @@ import { CATEGORIES, CARDS, Transaction, TxnFormData } from "@/lib/types";
 interface Props {
   open: boolean;
   editing: Transaction | null;
+  defaultCard?: string;
   onClose: () => void;
   onSave: (data: TxnFormData) => void;
   onDelete: (id: number) => void;
 }
 
-const empty: TxnFormData = {
-  desc: "", amount: "0", type: "egreso",
-  category: "Alimentación", card: "BBVA Débito",
-  date: new Date().toISOString().split("T")[0],
-};
-
-export default function TxnModal({ open, editing, onClose, onSave, onDelete }: Props) {
-  const [form, setForm] = useState<TxnFormData>(empty);
+export default function TxnModal({ open, editing, defaultCard, onClose, onSave, onDelete }: Props) {
+  const [form, setForm] = useState<TxnFormData>({ desc: "", amount: "0", type: "egreso", category: "Alimentación", card: CARDS[0], date: "" });
 
   useEffect(() => {
+    const today = new Date().toISOString().split("T")[0];
     setForm(editing ? {
       desc: editing.desc, amount: editing.amount, type: editing.type,
       category: editing.category, card: editing.card, date: editing.date,
-    } : { ...empty, date: new Date().toISOString().split("T")[0] });
-  }, [editing, open]);
+    } : { desc: "", amount: "0", type: "egreso", category: "Alimentación", card: defaultCard ?? CARDS[0], date: today });
+  }, [editing, open, defaultCard]);
 
   const set = (k: keyof TxnFormData, v: string) => setForm(f => ({ ...f, [k]: v }));
 
@@ -61,7 +57,7 @@ export default function TxnModal({ open, editing, onClose, onSave, onDelete }: P
 
         <Row>
           <Field label="Descripción"><input style={inputStyle} value={form.desc} onChange={e => set("desc", e.target.value)} placeholder="Ej. Supermercado" /></Field>
-          <Field label="Monto (MXN)"><input style={inputStyle} type="number" value={form.amount} onChange={e => set("amount", e.target.value)} min="0" step="0.01" /></Field>
+          <Field label="Monto (PEN)"><input style={inputStyle} type="number" value={form.amount} onChange={e => set("amount", e.target.value)} min="0" step="0.01" /></Field>
         </Row>
         <Row>
           <Field label="Tipo">

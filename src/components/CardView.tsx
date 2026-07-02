@@ -44,14 +44,14 @@ const CARD_CONFIG: Record<string, {
     glow: "rgba(64,158,187,.45)",
     logoSize: 48,
     logoBg: "transparent",
-    fixedBalance: 700,
+    fixedBalance: 70000,
   },
   "BBVA Crédito": {
     logo: "/BBVA.jpg",
     bg: "linear-gradient(135deg, #00438f 0%, #0b4fbf 55%, #003b7a 100%)",
     glow: "rgba(0,67,143,.45)",
     logoSize: 52,
-    fixedBalance: 500,
+    fixedBalance: 50000,
   },
   "Pichincha": {
     logo: "/pichincha.png",
@@ -60,14 +60,14 @@ const CARD_CONFIG: Record<string, {
     logoSize: 52,
     logoBg: "transparent",
     textColor: "#1B2D55",
-    fixedBalance: 544.06,
+    fixedBalance: 54406,
   },
   "Cuenta Millonaria - Interbank": {
     logo: "/INTERBANK.svg",
     bg: "linear-gradient(135deg, #00853e 0%, #00b359 60%, #006e34 100%)",
     glow: "rgba(0,133,62,.45)",
     logoSize: 52,
-    fixedBalance: 15543.48,
+    fixedBalance: 1554348,
   },
 };
 

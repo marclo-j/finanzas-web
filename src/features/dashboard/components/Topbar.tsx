@@ -1,6 +1,6 @@
 "use client";
 
-import { MoonIcon, SunIcon } from "./Icons";
+import { MoonIcon, SunIcon } from "@/components/ui/Icons";
 
 interface Props {
   title: string;

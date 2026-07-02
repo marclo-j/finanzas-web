@@ -1,6 +1,6 @@
 "use client";
 
-import { GridIcon, ListIcon, CardIcon, ClockIcon, PiggyIcon, DebtIcon } from "./Icons";
+import { GridIcon, ListIcon, CardIcon, ClockIcon, PiggyIcon, DebtIcon } from "@/components/ui/Icons";
 
 interface Props {
   view: string;

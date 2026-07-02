@@ -2,15 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { Transaction, TxnFormData, DEBIT_CARDS, CREDIT_CARD_NAMES, SAVINGS_ACCOUNTS } from "@/lib/types";
-import Sidebar from "@/components/Sidebar";
-import Topbar from "@/components/Topbar";
-import KpiGrid from "@/components/KpiGrid";
-import Charts from "@/components/Charts";
-import TxnTable from "@/components/TxnTable";
-import TxnModal from "@/components/TxnModal";
-import CardView from "@/components/CardView";
-import LoansView from "@/components/LoansView";
-import { PlusIcon } from "@/components/Icons";
+import Sidebar from "./Sidebar";
+import Topbar from "./Topbar";
+import KpiGrid from "./KpiGrid";
+import Charts from "./Charts";
+import TxnTable from "@/features/transactions/components/TxnTable";
+import TxnModal from "@/features/transactions/components/TxnModal";
+import CardView from "./CardView";
+import LoansView from "@/features/loans/components/LoansView";
+import { PlusIcon } from "@/components/ui/Icons";
 
 const VIEW_TITLES: Record<string, string> = {
   dashboard:    "Resumen general",

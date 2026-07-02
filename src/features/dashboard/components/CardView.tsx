@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Transaction, Installment } from "@/lib/types";
 import { fmt, getCardConfig } from "@/lib/utils";
-import TxnTable from "./TxnTable";
-import InstallmentList from "./InstallmentList";
-import { PlusIcon } from "./Icons";
+import TxnTable from "@/features/transactions/components/TxnTable";
+import InstallmentList from "@/features/transactions/components/InstallmentList";
+import { PlusIcon } from "@/components/ui/Icons";
 
 interface Props {
   cards: readonly string[];

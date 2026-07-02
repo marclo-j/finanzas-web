@@ -1,6 +1,6 @@
 import type { Installment } from "@/lib/types";
 import { fmt, fmtDate, fmtMonth } from "@/lib/utils";
-import { CalendarIcon, CheckIcon } from "@/components/Icons";
+import { CalendarIcon, CheckIcon } from "@/components/ui/Icons";
 
 interface Props {
   installments: Installment[];

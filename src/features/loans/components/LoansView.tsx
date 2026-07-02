@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Loan, LoanFormData } from "@/lib/types";
 import { fmt, fmtDate } from "@/lib/utils";
-import { EditIcon, PlusIcon, CheckIcon } from "./Icons";
+import { EditIcon, PlusIcon, CheckIcon } from "@/components/ui/Icons";
 import LoanModal from "./LoanModal";
 
 export default function LoansView() {

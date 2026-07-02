@@ -1,4 +1,4 @@
-import { sqliteTable, integer, text } from "drizzle-orm/sqlite-core";
+import { sqliteTable, integer, text, index } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
 export const transactions = sqliteTable("transactions", {
@@ -12,7 +12,10 @@ export const transactions = sqliteTable("transactions", {
   installments: integer("installments").notNull().default(1),
   installmentGroupId: text("installment_group_id"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
-});
+}, (table) => ({
+  dateIdx:       index("tx_date_idx").on(table.date),
+  cardInstIdx:   index("tx_card_inst_idx").on(table.card, table.installments),
+}));
 
 export const loans = sqliteTable("loans", {
   id:         integer("id").primaryKey({ autoIncrement: true }),
@@ -24,7 +27,9 @@ export const loans = sqliteTable("loans", {
   status:     text("status").notNull().default("pendiente"),
   paidAmount: integer("paid_amount").notNull().default(0),
   createdAt:  text("created_at").default(sql`(datetime('now'))`).notNull(),
-});
+}, (table) => ({
+  createdAtIdx: index("loans_created_at_idx").on(table.createdAt),
+}));
 
 export const installments = sqliteTable("installments", {
   id:            integer("id").primaryKey({ autoIncrement: true }),
@@ -34,7 +39,10 @@ export const installments = sqliteTable("installments", {
   dueDate:       text("due_date").notNull(),
   status:        text("status").notNull().default("pending"),
   paidAt:        text("paid_at"),
-});
+}, (table) => ({
+  txnIdIdx:  index("inst_txn_id_idx").on(table.transactionId),
+  dueDateIdx: index("inst_due_date_idx").on(table.dueDate),
+}));
 
 export type Transaction    = typeof transactions.$inferSelect;
 export type NewTransaction = typeof transactions.$inferInsert;

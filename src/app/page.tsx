@@ -1,12 +1,10 @@
-import { getDb } from "@/db/client";
-import { transactions } from "@/db/schema";
+import { transactionRepository } from "@/features/transactions/repository";
 import type { Transaction } from "@/lib/types";
-import { desc } from "drizzle-orm";
-import Dashboard from "@/components/Dashboard";
+import Dashboard from "@/features/dashboard/components/Dashboard";
 
 export const dynamic = "force-dynamic";
 
 export default async function Page() {
-  const rows = await getDb().select().from(transactions).orderBy(desc(transactions.date));
-  return <Dashboard initial={rows as unknown as Transaction[]} />;
+  const rows = await transactionRepository.findAll();
+  return <Dashboard initial={rows as Transaction[]} />;
 }

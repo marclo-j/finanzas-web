@@ -1,18 +1,18 @@
-import { db } from "@/db/client";
+import { getDb } from "@/db/client";
 import { loans } from "@/db/schema";
 import { desc } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { loanSchema } from "@/lib/validation";
 
 export async function GET() {
-  const rows = await db.select().from(loans).orderBy(desc(loans.createdAt));
+  const rows = await getDb().select().from(loans).orderBy(desc(loans.createdAt));
   return NextResponse.json(rows);
 }
 
 export async function POST(req: Request) {
   const body = await req.json();
   const parsed = loanSchema.parse(body);
-  const [row] = await db.insert(loans).values({
+  const [row] = await getDb().insert(loans).values({
     person: parsed.person,
     desc: parsed.desc,
     amount: Math.round(parseFloat(parsed.amount) * 100),

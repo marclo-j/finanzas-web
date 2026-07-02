@@ -1,4 +1,4 @@
-import { db } from "@/db/client";
+import { getDb } from "@/db/client";
 import { transactions, installments } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -16,13 +16,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (parsed.card !== undefined) vals.card = parsed.card;
   if (parsed.date !== undefined) vals.date = parsed.date;
 
-  const [row] = await db.update(transactions).set(vals).where(eq(transactions.id, Number(id))).returning();
+  const [row] = await getDb().update(transactions).set(vals).where(eq(transactions.id, Number(id))).returning();
   return NextResponse.json(row);
 }
 
 export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  await db.delete(installments).where(eq(installments.transactionId, Number(id)));
-  await db.delete(transactions).where(eq(transactions.id, Number(id)));
+  await getDb().delete(installments).where(eq(installments.transactionId, Number(id)));
+  await getDb().delete(transactions).where(eq(transactions.id, Number(id)));
   return NextResponse.json({ ok: true });
 }

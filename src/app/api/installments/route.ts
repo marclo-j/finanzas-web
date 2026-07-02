@@ -1,4 +1,4 @@
-import { db } from "@/db/client";
+import { getDb } from "@/db/client";
 import { installments, transactions } from "@/db/schema";
 import { eq, and, SQL } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   if (month) conditions.push(eq(installments.dueDate, month));
   if (card) conditions.push(eq(transactions.card, card));
 
-  const realInstallments = await db.select({
+  const realInstallments = await getDb().select({
     id: installments.id,
     transactionId: installments.transactionId,
     number: installments.number,
@@ -31,7 +31,7 @@ export async function GET(req: Request) {
   // 2. Single-installment purchases (al contado)
   const singles: typeof realInstallments = [];
   if (card) {
-    const singleTxns = await db.select()
+    const singleTxns = await getDb().select()
       .from(transactions)
       .where(and(eq(transactions.card, card), eq(transactions.installments, 1)));
 
@@ -58,6 +58,6 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const [row] = await db.insert(installments).values(body).returning();
+  const [row] = await getDb().insert(installments).values(body).returning();
   return NextResponse.json(row, { status: 201 });
 }

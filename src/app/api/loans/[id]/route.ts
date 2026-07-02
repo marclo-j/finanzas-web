@@ -1,4 +1,4 @@
-import { db } from "@/db/client";
+import { getDb } from "@/db/client";
 import { loans } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -17,12 +17,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (parsed.status !== undefined) vals.status = parsed.status;
   if (parsed.paidAmount !== undefined) vals.paidAmount = Math.round(parseFloat(parsed.paidAmount) * 100);
 
-  const [row] = await db.update(loans).set(vals).where(eq(loans.id, Number(id))).returning();
+  const [row] = await getDb().update(loans).set(vals).where(eq(loans.id, Number(id))).returning();
   return NextResponse.json(row);
 }
 
 export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  await db.delete(loans).where(eq(loans.id, Number(id)));
+  await getDb().delete(loans).where(eq(loans.id, Number(id)));
   return NextResponse.json({ ok: true });
 }

@@ -18,9 +18,11 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "recharts": "2.15.3",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.9",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@next/env": "^15.5.19",
     "@tailwindcss/postcss": "4.1.10",
     "@types/node": "22.15.29",
     "@types/react": "19.1.6",

@@ -6,10 +6,10 @@ let _db: ReturnType<typeof drizzle> | null = null;
 
 export function getTestDb() {
   if (_db) return _db;
-  const url = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
-  const token = process.env.TEST_TURSO_AUTH_TOKEN || process.env.TURSO_AUTH_TOKEN;
+  const url = process.env.TEST_DATABASE_URL;
+  const token = process.env.TEST_TURSO_AUTH_TOKEN;
   if (!url || !token) {
-    console.warn("[helpers] Faltan credenciales");
+    console.warn("[helpers] Faltan TEST_DATABASE_URL / TEST_TURSO_AUTH_TOKEN");
     return null;
   }
   const client = createClient({ url, authToken: token });
@@ -18,9 +18,7 @@ export function getTestDb() {
 }
 
 export function skipIfNoDb(): boolean {
-  const url = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
-  const token = process.env.TEST_TURSO_AUTH_TOKEN || process.env.TURSO_AUTH_TOKEN;
-  if (!url || !token) {
+  if (!process.env.TEST_DATABASE_URL || !process.env.TEST_TURSO_AUTH_TOKEN) {
     console.warn("SALTANDO TEST: falta TEST_DATABASE_URL / TEST_TURSO_AUTH_TOKEN en .env.local");
     return true;
   }

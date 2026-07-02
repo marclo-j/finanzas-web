@@ -1,16 +1,19 @@
 import { db } from "@/db/client";
 import { installments, transactions } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, SQL } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { computeInstallmentDate } from "@/lib/types";
+import { computeInstallmentDate } from "@/lib/utils";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const month = url.searchParams.get("month");
   const card = url.searchParams.get("card");
 
-  // 1. Multi-installment records
-  let query = db.select({
+  const conditions: (SQL | undefined)[] = [];
+  if (month) conditions.push(eq(installments.dueDate, month));
+  if (card) conditions.push(eq(transactions.card, card));
+
+  const realInstallments = await db.select({
     id: installments.id,
     transactionId: installments.transactionId,
     number: installments.number,
@@ -22,21 +25,8 @@ export async function GET(req: Request) {
     category: transactions.category,
     card: transactions.card,
   }).from(installments)
-    .innerJoin(transactions, eq(installments.transactionId, transactions.id));
-
-  const conditions = [];
-  if (month) {
-    conditions.push(eq(installments.dueDate, month));
-  }
-  if (card) {
-    conditions.push(eq(transactions.card, card));
-  }
-
-  if (conditions.length > 0) {
-    query = query.where(and(...conditions)) as typeof query;
-  }
-
-  const realInstallments = await query;
+    .innerJoin(transactions, eq(installments.transactionId, transactions.id))
+    .where(and(...conditions));
 
   // 2. Single-installment purchases (al contado)
   const singles: typeof realInstallments = [];

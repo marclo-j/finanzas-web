@@ -1,5 +1,6 @@
-import { fmt, fmtDate, Transaction } from "@/lib/types";
-import { EditIcon, TrashIcon } from "./Icons";
+import { Transaction } from "@/lib/types";
+import { fmt, fmtDate } from "@/lib/utils";
+import { EditIcon, TrashIcon } from "@/components/Icons";
 
 interface Props {
   transactions: Transaction[];

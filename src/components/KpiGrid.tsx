@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { fmt, Transaction } from "@/lib/types";
+import { Transaction } from "@/lib/types";
+import { fmt } from "@/lib/utils";
 
 interface Props { transactions: Transaction[] }
 
@@ -21,9 +22,9 @@ export default function KpiGrid({ transactions }: Props) {
   const saldo = ing - egr;
 
   const cards = [
-    { label: "Saldo disponible", value: fmt(saldo), delta: "+12.4% vs mes ant.", dir: "up",   color: "var(--accent)", bar: "var(--accent)" },
-    { label: "Ingresos",          value: fmt(ing),   delta: "+8.2% vs mes ant.",  dir: "up",   color: "var(--green)",  bar: "var(--green)"  },
-    { label: "Egresos",           value: fmt(egr),   delta: "-3.1% vs mes ant.",  dir: "down", color: "var(--red)",    bar: "var(--red)"    },
+    { label: "Saldo disponible", value: fmt(saldo), color: "var(--accent)", bar: "var(--accent)" },
+    { label: "Ingresos",          value: fmt(ing),   color: "var(--green)",  bar: "var(--green)"  },
+    { label: "Egresos",           value: fmt(egr),   color: "var(--red)",    bar: "var(--red)"    },
   ];
 
   function cardEl(c: typeof cards[0], compact?: boolean) {
@@ -38,9 +39,6 @@ export default function KpiGrid({ transactions }: Props) {
         </div>
         <div style={{ fontSize: compact ? 20 : 24, fontWeight: 700, letterSpacing: "-0.03em", fontVariantNumeric: "tabular-nums", lineHeight: 1, color: c.color }}>
           {c.value}
-        </div>
-        <div style={{ fontSize: 11, marginTop: 6, display: "flex", alignItems: "center", gap: 4, color: c.dir === "up" ? "var(--green)" : "var(--red)" }}>
-          {c.dir === "up" ? "▲" : "▼"} {c.delta}
         </div>
         <div style={{ height: 3, borderRadius: 2, marginTop: compact ? 10 : 14, background: c.bar, opacity: .35 }} />
       </div>

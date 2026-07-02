@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { fmt, fmtDate, Loan, LoanFormData } from "@/lib/types";
+import { Loan, LoanFormData } from "@/lib/types";
+import { fmt, fmtDate } from "@/lib/utils";
 import { EditIcon, PlusIcon, CheckIcon } from "./Icons";
 import LoanModal from "./LoanModal";
 

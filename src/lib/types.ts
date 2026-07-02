@@ -16,6 +16,7 @@ export interface Transaction {
   card: string;
   date: string;
   installments: number;
+  installmentGroupId: string | null;
   createdAt: string;
 }
 
@@ -77,48 +78,3 @@ export const SAVINGS_ACCOUNTS = ["Pichincha", "Cuenta Millonaria - Interbank"] a
 
 export const CREDIT_CARD_NAMES = CREDIT_CARDS_CONFIG.map(c => c.name);
 export const CARDS = [...DEBIT_CARDS, ...CREDIT_CARD_NAMES, ...SAVINGS_ACCOUNTS] as const;
-
-export function fmt(n: number) {
-  return new Intl.NumberFormat("es-PE", {
-    style: "currency", currency: "PEN", minimumFractionDigits: 2,
-  }).format(n);
-}
-
-export function fmtDate(s: string) {
-  const [y, m, d] = s.split("-");
-  return `${d}/${m}/${y}`;
-}
-
-export function fmtMonth(s: string) {
-  const [y, m] = s.split("-");
-  const months = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-  return `${months[parseInt(m, 10) - 1]} ${y}`;
-}
-
-export function getCardConfig(cardName: string): CardConfig | undefined {
-  return CREDIT_CARDS_CONFIG.find(c => c.name === cardName);
-}
-
-export function computeInstallmentDate(purchaseDate: string, installmentNumber: number, cardName: string): string {
-  const card = getCardConfig(cardName);
-  const paymentDay = card ? card.paymentDay : 28;
-  const d = new Date(purchaseDate);
-  const month = d.getMonth() + installmentNumber;
-  const year = d.getFullYear() + Math.floor(month / 12);
-  const m = (month % 12) + 1;
-  const day = Math.min(paymentDay, new Date(year, m, 0).getDate());
-  return `${year}-${String(m).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-}
-
-export function computeBillingMonth(purchaseDate: string, cardName: string): string {
-  const card = getCardConfig(cardName);
-  if (!card) {
-    const d = new Date(purchaseDate);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-  }
-  const d = new Date(purchaseDate);
-  if (d.getDate() > card.billingDay) {
-    d.setMonth(d.getMonth() + 1);
-  }
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}

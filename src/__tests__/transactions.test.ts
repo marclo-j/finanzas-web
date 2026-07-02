@@ -26,21 +26,21 @@ describe("Transactions CRUD", () => {
     await fullClean();
   });
 
-  it("CREATE - inserta una transacción", async () => {
+  it("CREATE - inserta una transacción en centavos", async () => {
     const [row] = await db!.insert(transactions).values({
-      desc: "Test compra", amount: 150.50, type: "egreso",
+      desc: "Test compra", amount: 15050, type: "egreso",
       category: "Alimentación", card: "BCP Débito", date: "2026-06-15", installments: 1,
     }).returning();
 
     expect(row.desc).toBe("Test compra");
-    expect(row.amount).toBe(150.50);
+    expect(row.amount).toBe(15050);
     expect(row.id).toBeGreaterThan(0);
   });
 
   it("READ - lista transacciones ordenadas por fecha", async () => {
     await db!.insert(transactions).values([
-      { desc: "Segundo", amount: 200, type: "ingreso", category: "Sueldo", card: "BCP Débito", date: "2026-07-01", installments: 1 },
-      { desc: "Primero", amount: 100, type: "egreso", category: "Transporte", card: "BCP Débito", date: "2026-06-01", installments: 1 },
+      { desc: "Segundo", amount: 20000, type: "ingreso", category: "Sueldo", card: "BCP Débito", date: "2026-07-01", installments: 1 },
+      { desc: "Primero", amount: 10000, type: "egreso", category: "Transporte", card: "BCP Débito", date: "2026-06-01", installments: 1 },
     ]);
 
     const rows = await db!.select().from(transactions).orderBy(desc(transactions.date));
@@ -51,21 +51,21 @@ describe("Transactions CRUD", () => {
 
   it("UPDATE - actualiza descripción y monto", async () => {
     const [created] = await db!.insert(transactions).values({
-      desc: "Original", amount: 100, type: "egreso", category: "Otro", card: "BCP Débito", date: "2026-06-01", installments: 1,
+      desc: "Original", amount: 10000, type: "egreso", category: "Otro", card: "BCP Débito", date: "2026-06-01", installments: 1,
     }).returning();
 
     const [updated] = await db!.update(transactions)
-      .set({ desc: "Actualizado", amount: 200 })
+      .set({ desc: "Actualizado", amount: 20000 })
       .where(eq(transactions.id, created.id))
       .returning();
 
     expect(updated.desc).toBe("Actualizado");
-    expect(updated.amount).toBe(200);
+    expect(updated.amount).toBe(20000);
   });
 
   it("DELETE - elimina una transacción", async () => {
     const [created] = await db!.insert(transactions).values({
-      desc: "Para borrar", amount: 50, type: "egreso", category: "Otro", card: "BCP Débito", date: "2026-06-01", installments: 1,
+      desc: "Para borrar", amount: 5000, type: "egreso", category: "Otro", card: "BCP Débito", date: "2026-06-01", installments: 1,
     }).returning();
 
     await db!.delete(transactions).where(eq(transactions.id, created.id));
@@ -73,15 +73,15 @@ describe("Transactions CRUD", () => {
     expect(remaining.length).toBe(0);
   });
 
-  it("CREATE con cuotas - inserta transaction + installment_details", async () => {
+  it("CREATE con cuotas - inserta transaction + installment_details en centavos", async () => {
     const groupId = crypto.randomUUID();
     const [tx] = await db!.insert(transactions).values({
-      desc: "Laptop cuotas", amount: 3600, type: "egreso", category: "Otro", card: "IO Crédito",
+      desc: "Laptop cuotas", amount: 360000, type: "egreso", category: "Otro", card: "IO Crédito",
       date: "2026-06-15", installments: 12, installmentGroupId: groupId,
     }).returning();
 
-    const perInstallment = parseFloat((3600 / 12).toFixed(2));
-    const remainder = 3600 - perInstallment * 11;
+    const perInstallment = Math.floor(360000 / 12);
+    const remainder = 360000 - perInstallment * 11;
     const insValues = [];
     for (let i = 1; i <= 12; i++) {
       const d = new Date("2026-06-15");
@@ -98,6 +98,6 @@ describe("Transactions CRUD", () => {
     const related = allInsts.filter(i => i.transactionId === tx.id);
     expect(related.length).toBe(12);
     const totalInst = related.reduce((s, i) => s + i.amount, 0);
-    expect(Math.round(totalInst)).toBe(3600);
+    expect(totalInst).toBe(360000);
   });
 });

@@ -1,24 +1,37 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { fmt, Transaction } from "@/lib/types";
+import { Transaction } from "@/lib/types";
+import { fmt } from "@/lib/utils";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from "recharts";
 
-const HIST = [
-  { mes: "Ene", ingresos: 24000, egresos: 18000 },
-  { mes: "Feb", ingresos: 26500, egresos: 19200 },
-  { mes: "Mar", ingresos: 25000, egresos: 17400 },
-  { mes: "Abr", ingresos: 30000, egresos: 22000 },
-  { mes: "May", ingresos: 27500, egresos: 21300 },
-];
-
 const PALETTE = [
   "oklch(58% 0.18 255)","oklch(56% 0.16 155)","oklch(57% 0.19 25)",
   "oklch(72% 0.16 75)","oklch(58% 0.15 300)","oklch(60% 0.14 200)","oklch(55% 0.13 30)",
 ];
+
+const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+
+function computeMonthlyData(transactions: Transaction[]) {
+  const byMonth: Record<string, { ingresos: number; egresos: number }> = {};
+  for (const t of transactions) {
+    const m = t.date.slice(0, 7);
+    if (!byMonth[m]) byMonth[m] = { ingresos: 0, egresos: 0 };
+    if (t.type === "ingreso") byMonth[m].ingresos += t.amount;
+    else byMonth[m].egresos += t.amount;
+  }
+  return Object.entries(byMonth)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-6)
+    .map(([m, d]) => ({
+      mes: MONTHS[parseInt(m.slice(5, 7), 10) - 1],
+      ingresos: Math.round(d.ingresos / 100),
+      egresos: Math.round(d.egresos / 100),
+    }));
+}
 
 interface Props { transactions: Transaction[] }
 
@@ -38,12 +51,10 @@ export default function Charts({ transactions }: Props) {
   transactions.filter(t => t.type === "egreso").forEach(t => {
     cats[t.category] = (cats[t.category] || 0) + t.amount;
   });
-  const donutData = Object.entries(cats).map(([name, value]) => ({ name, value }));
+  const donutData = Object.entries(cats).map(([name, value]) => ({ name, value: Math.round(value / 100) }));
   const totalEgr = donutData.reduce((s, d) => s + d.value, 0);
 
-  const curIng = transactions.filter(t => t.type === "ingreso").reduce((s, t) => s + t.amount, 0);
-  const curEgr = transactions.filter(t => t.type === "egreso" ).reduce((s, t) => s + t.amount, 0);
-  const lineData = [...HIST, { mes: "Jun", ingresos: curIng, egresos: curEgr }];
+  const lineData = computeMonthlyData(transactions);
 
   const tickStyle = { fill: "var(--muted)", fontSize: 11 };
 

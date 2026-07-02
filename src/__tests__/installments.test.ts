@@ -28,9 +28,9 @@ describe("Installments CRUD", () => {
     await fullClean();
   });
 
-  it("crea installment_details", async () => {
+  it("crea installment_details en centavos", async () => {
     const [tx] = await db!.insert(transactions).values({
-      desc: "Compra en cuotas", amount: 2400, type: "egreso", category: "Otro",
+      desc: "Compra en cuotas", amount: 240000, type: "egreso", category: "Otro",
       card: "BBVA Crédito", date: "2026-06-01", installments: 6,
     }).returning();
 
@@ -39,7 +39,7 @@ describe("Installments CRUD", () => {
       const d = new Date("2026-06-01");
       d.setMonth(d.getMonth() + i);
       vals.push({
-        transactionId: tx.id, number: i, amount: 400,
+        transactionId: tx.id, number: i, amount: 40000,
         dueDate: d.toISOString().slice(0, 10), status: "pending" as const,
       });
     }
@@ -48,17 +48,17 @@ describe("Installments CRUD", () => {
     const all = await db!.select().from(installmentsTable);
     const related = all.filter(i => i.transactionId === tx.id);
     expect(related.length).toBe(6);
-    expect(related.reduce((s, i) => s + i.amount, 0)).toBe(2400);
+    expect(related.reduce((s, i) => s + i.amount, 0)).toBe(240000);
   });
 
   it("actualiza estado a pagada", async () => {
     const [tx] = await db!.insert(transactions).values({
-      desc: "Test cuota", amount: 600, type: "egreso", category: "Otro",
+      desc: "Test cuota", amount: 60000, type: "egreso", category: "Otro",
       card: "IO Crédito", date: "2026-07-01", installments: 3,
     }).returning();
 
     const [inst] = await db!.insert(installmentsTable).values({
-      transactionId: tx.id, number: 1, amount: 200, dueDate: "2026-08-01", status: "pending",
+      transactionId: tx.id, number: 1, amount: 20000, dueDate: "2026-08-01", status: "pending",
     }).returning();
 
     const now = new Date().toISOString();
@@ -73,19 +73,19 @@ describe("Installments CRUD", () => {
 
   it("filtra cuotas por tarjeta con JOIN", async () => {
     const [txIo] = await db!.insert(transactions).values({
-      desc: "Compra IO", amount: 300, type: "egreso", category: "Otro",
+      desc: "Compra IO", amount: 30000, type: "egreso", category: "Otro",
       card: "IO Crédito", date: "2026-08-01", installments: 1,
     }).returning();
     const [txBbva] = await db!.insert(transactions).values({
-      desc: "Compra BBVA", amount: 300, type: "egreso", category: "Otro",
+      desc: "Compra BBVA", amount: 30000, type: "egreso", category: "Otro",
       card: "BBVA Crédito", date: "2026-08-01", installments: 1,
     }).returning();
 
     const inst1 = await db!.insert(installmentsTable).values({
-      transactionId: txIo.id, number: 1, amount: 300, dueDate: "2026-09-01", status: "pending",
+      transactionId: txIo.id, number: 1, amount: 30000, dueDate: "2026-09-01", status: "pending",
     }).returning();
     await db!.insert(installmentsTable).values({
-      transactionId: txBbva.id, number: 1, amount: 300, dueDate: "2026-09-01", status: "pending",
+      transactionId: txBbva.id, number: 1, amount: 30000, dueDate: "2026-09-01", status: "pending",
     }).returning();
 
     const result = await db!.select().from(installmentsTable)

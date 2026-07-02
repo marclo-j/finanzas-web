@@ -36,13 +36,13 @@ export default function Charts({ transactions }: Props) {
 
   const cats: Record<string, number> = {};
   transactions.filter(t => t.type === "egreso").forEach(t => {
-    cats[t.category] = (cats[t.category] || 0) + Number(t.amount);
+    cats[t.category] = (cats[t.category] || 0) + t.amount;
   });
   const donutData = Object.entries(cats).map(([name, value]) => ({ name, value }));
   const totalEgr = donutData.reduce((s, d) => s + d.value, 0);
 
-  const curIng = transactions.filter(t => t.type === "ingreso").reduce((s, t) => s + Number(t.amount), 0);
-  const curEgr = transactions.filter(t => t.type === "egreso" ).reduce((s, t) => s + Number(t.amount), 0);
+  const curIng = transactions.filter(t => t.type === "ingreso").reduce((s, t) => s + t.amount, 0);
+  const curEgr = transactions.filter(t => t.type === "egreso" ).reduce((s, t) => s + t.amount, 0);
   const lineData = [...HIST, { mes: "Jun", ingresos: curIng, egresos: curEgr }];
 
   const tickStyle = { fill: "var(--muted)", fontSize: 11 };

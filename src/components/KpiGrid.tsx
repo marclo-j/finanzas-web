@@ -16,8 +16,8 @@ export default function KpiGrid({ transactions }: Props) {
     return () => mq.removeEventListener("change", handler);
   }, []);
 
-  const ing  = transactions.filter(t => t.type === "ingreso").reduce((s, t) => s + Number(t.amount), 0);
-  const egr  = transactions.filter(t => t.type === "egreso" ).reduce((s, t) => s + Number(t.amount), 0);
+  const ing  = transactions.filter(t => t.type === "ingreso").reduce((s, t) => s + t.amount, 0);
+  const egr  = transactions.filter(t => t.type === "egreso" ).reduce((s, t) => s + t.amount, 0);
   const saldo = ing - egr;
 
   const cards = [

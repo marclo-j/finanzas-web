@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { fmt, Transaction } from "@/lib/types";
+import { fmt, fmtDate, fmtMonth, Transaction, Installment, getCardConfig, CREDIT_CARDS_CONFIG } from "@/lib/types";
 import TxnTable from "./TxnTable";
-import { PlusIcon } from "./Icons";
+import { PlusIcon, CheckIcon, CalendarIcon } from "./Icons";
 
 interface Props {
   cards: readonly string[];
@@ -12,6 +12,7 @@ interface Props {
   onNew: (defaultCard: string) => void;
   onEdit: (t: Transaction) => void;
   onDelete: (id: number) => void;
+  isCredit?: boolean;
 }
 
 const CARD_CONFIG: Record<string, {
@@ -68,10 +69,118 @@ const CARD_CONFIG: Record<string, {
   },
 };
 
-export default function CardView({ cards, transactions, onNew, onEdit, onDelete }: Props) {
+function InstallmentList({ installments }: { installments: Installment[] }) {
+  const S = {
+    th: { padding: "10px 16px", textAlign: "left" as const, fontSize: 11, fontWeight: 600,
+      textTransform: "uppercase" as const, letterSpacing: ".07em", color: "var(--muted)",
+      borderBottom: "1px solid var(--border)", background: "var(--bg)" },
+    td: { padding: "11px 16px", fontSize: 13, borderBottom: "1px solid var(--border)", verticalAlign: "middle" as const },
+  };
+
+  if (installments.length === 0) {
+    return (
+      <div style={{ textAlign: "center", padding: 32, color: "var(--muted)", fontSize: 13 }}>
+        No hay cuotas para esta tarjeta. Agrega una transacción con cuotas desde el historial.
+      </div>
+    );
+  }
+
+  const byMonth: Record<string, Installment[]> = {};
+  installments.forEach(inst => {
+    if (!inst.dueDate) return;
+    const month = inst.dueDate.slice(0, 7);
+    if (!byMonth[month]) byMonth[month] = [];
+    byMonth[month].push(inst);
+  });
+  const sortedMonths = Object.keys(byMonth).sort();
+
+  return (
+    <div>
+      {sortedMonths.map(month => {
+        const insts = byMonth[month];
+        const total = insts.reduce((s, i) => s + i.amount, 0);
+        const paidCount = insts.filter(i => i.status === "paid").length;
+        const allPaid = paidCount === insts.length;
+
+        return (
+          <div key={month} style={{
+            background: "var(--surface)", border: "1px solid var(--border)",
+            borderRadius: "var(--radius)", marginBottom: 16, overflowX: "auto", overflowY: "hidden",
+            boxShadow: "var(--shadow)",
+          }}>
+            <div style={{
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              padding: "14px 20px",
+              background: allPaid ? "var(--green-lo)" : "var(--bg)",
+              borderBottom: "1px solid var(--border)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <CalendarIcon />
+                <span style={{ fontSize: 14, fontWeight: 600 }}>{fmtMonth(month)}</span>
+                <span style={{ fontSize: 11, color: "var(--muted)" }}>
+                  ({paidCount}/{insts.length} pagadas)
+                </span>
+              </div>
+              <div style={{ fontSize: 15, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
+                {fmt(total)}
+              </div>
+            </div>
+
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  <th style={S.th}>#</th>
+                  <th style={S.th}>Descripción</th>
+                  <th style={S.th}>Categoría</th>
+                  <th style={S.th}>Vencimiento</th>
+                  <th style={{ ...S.th, textAlign: "right" }}>Monto</th>
+                  <th style={S.th}>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {insts.map(inst => (
+                  <tr key={inst.id} style={{ cursor: "default" }}>
+                    <td style={{ ...S.td, color: "var(--muted)", fontSize: 12 }}>{inst.number}/{inst.transactionId}</td>
+                    <td style={{ ...S.td, fontWeight: 500 }}>{inst.desc ?? `Transacción #${inst.transactionId}`}</td>
+                    <td style={S.td}>
+                      {inst.category && (
+                        <span style={{ display: "inline-flex", padding: "2px 8px", borderRadius: 20, fontSize: 11, background: "var(--accent-lo)", color: "var(--accent)" }}>
+                          {inst.category}
+                        </span>
+                      )}
+                    </td>
+                    <td style={{ ...S.td, fontSize: 12, color: "var(--muted)" }}>{fmtDate(inst.dueDate)}</td>
+                    <td style={{ ...S.td, textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                      {fmt(inst.amount)}
+                    </td>
+                    <td style={S.td}>
+                      <span style={{
+                        display: "inline-flex", alignItems: "center", padding: "3px 9px", borderRadius: 20,
+                        fontSize: 11, fontWeight: 600, gap: 4,
+                        background: inst.status === "paid" ? "var(--green-lo)" : "var(--red-lo)",
+                        color:      inst.status === "paid" ? "var(--green)"    : "var(--red)",
+                      }}>
+                        {inst.status === "paid" && <CheckIcon />}
+                        {inst.status === "paid" ? "Pagada" : "Pendiente"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function CardView({ cards, transactions, onNew, onEdit, onDelete, isCredit }: Props) {
   const [selected, setSelected] = useState(cards[0]);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileIdx, setMobileIdx] = useState(0);
+  const [tab, setTab] = useState<"historial" | "cuotas">("historial");
+  const [allInstallments, setAllInstallments] = useState<Installment[]>([]);
   const filtered = transactions.filter(t => t.card === selected);
 
   useEffect(() => {
@@ -86,14 +195,24 @@ export default function CardView({ cards, transactions, onNew, onEdit, onDelete 
     setMobileIdx(0);
   }, [cards]);
 
+  useEffect(() => {
+    if (tab === "cuotas") {
+      fetch(`/api/installments?card=${encodeURIComponent(selected)}`)
+        .then(r => r.json())
+        .then(setAllInstallments)
+        .catch(() => {});
+    }
+  }, [tab, selected]);
+
   function renderCard(card: string, isActive: boolean) {
     const cfg = CARD_CONFIG[card];
     const txns  = transactions.filter(t => t.card === card);
-    const ing   = txns.filter(t => t.type === "ingreso").reduce((s, t) => s + Number(t.amount), 0);
-    const egr   = txns.filter(t => t.type === "egreso" ).reduce((s, t) => s + Number(t.amount), 0);
+    const ing   = txns.filter(t => t.type === "ingreso").reduce((s, t) => s + t.amount, 0);
+    const egr   = txns.filter(t => t.type === "egreso" ).reduce((s, t) => s + t.amount, 0);
     const saldo = (cfg?.fixedBalance ?? 0) + ing - egr;
     const tc = cfg?.textColor;
     const toRgba = (hex: string, a: number) => `rgba(${parseInt(hex.slice(1,3),16)},${parseInt(hex.slice(3,5),16)},${parseInt(hex.slice(5,7),16)},${a})`;
+    const ccCfg = isCredit ? getCardConfig(card) : undefined;
 
     return (
       <button
@@ -141,6 +260,11 @@ export default function CardView({ cards, transactions, onNew, onEdit, onDelete 
             <div style={{ fontSize: 13, fontWeight: 600, color: tc ? toRgba(tc,.9) : "rgba(255,255,255,.9)" }}>
               {card.replace(" Débito","").replace(" Crédito","").replace(" - Interbank","")}
             </div>
+            {ccCfg && (
+              <div style={{ fontSize: 9, marginTop: 4, color: tc ? toRgba(tc,.55) : "rgba(255,255,255,.55)", letterSpacing: ".02em" }}>
+                Fact. día {ccCfg.billingDay} · Pago día {ccCfg.paymentDay}
+              </div>
+            )}
           </div>
           {cfg && (
             <div style={{
@@ -207,6 +331,7 @@ export default function CardView({ cards, transactions, onNew, onEdit, onDelete 
 
   return (
     <div>
+      {/* Cards */}
       {isMobile ? (
         <div style={{ marginBottom: 24 }}>
           <div className="carousel-wrap">
@@ -256,10 +381,32 @@ export default function CardView({ cards, transactions, onNew, onEdit, onDelete 
         </div>
       )}
 
+      {/* Tabs + Actions */}
       {isMobile ? (
         <div style={{ marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-            <span style={{ fontSize: 14, fontWeight: 600 }}>Historial</span>
+            {isCredit ? (
+              <div style={{ display: "flex", gap: 4, background: "var(--bg)", borderRadius: 8, padding: 3, border: "1px solid var(--border)" }}>
+                <button
+                  onClick={() => setTab("historial")}
+                  style={{
+                    background: tab === "historial" ? "var(--accent)" : "transparent",
+                    color: tab === "historial" ? "#fff" : "var(--muted)",
+                    border: "none", borderRadius: 6, padding: "5px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                  }}
+                >Historial</button>
+                <button
+                  onClick={() => setTab("cuotas")}
+                  style={{
+                    background: tab === "cuotas" ? "var(--accent)" : "transparent",
+                    color: tab === "cuotas" ? "#fff" : "var(--muted)",
+                    border: "none", borderRadius: 6, padding: "5px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                  }}
+                >Cuotas</button>
+              </div>
+            ) : (
+              <span style={{ fontSize: 14, fontWeight: 600 }}>Historial</span>
+            )}
             <select
               value={selected}
               onChange={e => setSelected(e.target.value)}
@@ -278,7 +425,28 @@ export default function CardView({ cards, transactions, onNew, onEdit, onDelete 
       ) : (
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 14, fontWeight: 600 }}>Historial</span>
+            {isCredit ? (
+              <div style={{ display: "flex", gap: 4, background: "var(--bg)", borderRadius: 8, padding: 3, border: "1px solid var(--border)" }}>
+                <button
+                  onClick={() => setTab("historial")}
+                  style={{
+                    background: tab === "historial" ? "var(--accent)" : "transparent",
+                    color: tab === "historial" ? "#fff" : "var(--muted)",
+                    border: "none", borderRadius: 6, padding: "5px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                  }}
+                >Historial</button>
+                <button
+                  onClick={() => setTab("cuotas")}
+                  style={{
+                    background: tab === "cuotas" ? "var(--accent)" : "transparent",
+                    color: tab === "cuotas" ? "#fff" : "var(--muted)",
+                    border: "none", borderRadius: 6, padding: "5px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                  }}
+                >Cuotas</button>
+              </div>
+            ) : (
+              <span style={{ fontSize: 14, fontWeight: 600 }}>Historial</span>
+            )}
             <select
               value={selected}
               onChange={e => setSelected(e.target.value)}
@@ -296,7 +464,12 @@ export default function CardView({ cards, transactions, onNew, onEdit, onDelete 
         </div>
       )}
 
-      <TxnTable transactions={filtered} onEdit={onEdit} onDelete={onDelete} />
+      {/* Content */}
+      {tab === "historial" || !isCredit ? (
+        <TxnTable transactions={filtered} onEdit={onEdit} onDelete={onDelete} />
+      ) : (
+        <InstallmentList installments={allInstallments} />
+      )}
     </div>
   );
 }

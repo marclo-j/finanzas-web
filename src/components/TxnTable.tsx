@@ -16,7 +16,7 @@ export default function TxnTable({ transactions, onEdit, onDelete }: Props) {
   };
 
   return (
-    <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)", overflow: "hidden", boxShadow: "var(--shadow)" }}>
+    <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)", overflowX: "auto", overflowY: "hidden", boxShadow: "var(--shadow)" }}>
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>
@@ -51,7 +51,7 @@ export default function TxnTable({ transactions, onEdit, onDelete }: Props) {
               </td>
               <td style={{ ...S.td, color: "var(--muted)", fontSize: 12 }}>{t.card}</td>
               <td style={{ ...S.td, textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums", color: t.type === "ingreso" ? "var(--green)" : "var(--red)" }}>
-                {t.type === "ingreso" ? "+" : "-"}{fmt(Number(t.amount))}
+                {t.type === "ingreso" ? "+" : "-"}{fmt(t.amount)}
               </td>
               <td style={{ ...S.td, textAlign: "right" }}>
                 <button onClick={() => onEdit(t)} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", borderRadius: 5, color: "var(--muted)" }}>

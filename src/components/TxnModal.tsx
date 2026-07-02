@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CATEGORIES, CARDS, Transaction, TxnFormData } from "@/lib/types";
+import { CATEGORIES, CARDS, CREDIT_CARD_NAMES, Transaction, TxnFormData } from "@/lib/types";
 
 interface Props {
   open: boolean;
@@ -13,14 +13,15 @@ interface Props {
 }
 
 export default function TxnModal({ open, editing, defaultCard, onClose, onSave, onDelete }: Props) {
-  const [form, setForm] = useState<TxnFormData>({ desc: "", amount: "0", type: "egreso", category: "Alimentación", card: CARDS[0], date: "" });
+  const [form, setForm] = useState<TxnFormData>({ desc: "", amount: "0", type: "egreso", category: "Alimentación", card: CARDS[0], date: "", installments: 1 });
 
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0];
     setForm(editing ? {
-      desc: editing.desc, amount: editing.amount, type: editing.type,
+      desc: editing.desc, amount: String(editing.amount), type: editing.type,
       category: editing.category, card: editing.card, date: editing.date,
-    } : { desc: "", amount: "0", type: "egreso", category: "Alimentación", card: defaultCard ?? CARDS[0], date: today });
+      installments: editing.installments ?? 1,
+    } : { desc: "", amount: "0", type: "egreso", category: "Alimentación", card: defaultCard ?? CARDS[0], date: today, installments: 1 });
   }, [editing, open, defaultCard]);
 
   const set = (k: keyof TxnFormData, v: string) => setForm(f => ({ ...f, [k]: v }));
@@ -34,6 +35,9 @@ export default function TxnModal({ open, editing, defaultCard, onClose, onSave, 
     border: "1px solid var(--border)", borderRadius: 8, padding: "8px 12px",
     fontSize: 13, background: "var(--bg)", color: "var(--fg)", outline: "none", width: "100%",
   };
+
+  const isCredit = CREDIT_CARD_NAMES.includes(form.card);
+  const showInstallments = isCredit && !editing;
 
   if (!open) return null;
 
@@ -80,6 +84,18 @@ export default function TxnModal({ open, editing, defaultCard, onClose, onSave, 
           </Field>
           <Field label="Fecha"><input style={inputStyle} type="date" value={form.date} onChange={e => set("date", e.target.value)} /></Field>
         </Row>
+        {showInstallments && (
+          <Row>
+            <Field label="Cuotas">
+              <select style={inputStyle} value={String(form.installments)} onChange={e => set("installments", e.target.value)}>
+                {[1,2,3,4,5,6,7,8,9,10,11,12,18,24,36].map(n => (
+                  <option key={n} value={n}>{n === 1 ? "Contado" : `${n} cuotas`}</option>
+                ))}
+              </select>
+            </Field>
+            <div />
+          </Row>
+        )}
 
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 4 }}>
           {editing && (

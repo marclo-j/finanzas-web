@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Transaction, TxnFormData, DEBIT_CARDS, CREDIT_CARDS, SAVINGS_ACCOUNTS } from "@/lib/types";
+import { Transaction, TxnFormData, DEBIT_CARDS, CREDIT_CARD_NAMES, SAVINGS_ACCOUNTS } from "@/lib/types";
 import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
 import KpiGrid from "@/components/KpiGrid";
@@ -9,6 +9,7 @@ import Charts from "@/components/Charts";
 import TxnTable from "@/components/TxnTable";
 import TxnModal from "@/components/TxnModal";
 import CardView from "@/components/CardView";
+import LoansView from "@/components/LoansView";
 import { PlusIcon } from "@/components/Icons";
 
 const VIEW_TITLES: Record<string, string> = {
@@ -17,6 +18,7 @@ const VIEW_TITLES: Record<string, string> = {
   debit:        "Débito",
   credit:       "Crédito",
   savings:      "Ahorro",
+  debts:        "Deudas",
 };
 
 export default function Dashboard({ initial }: { initial: Transaction[] }) {
@@ -135,11 +137,14 @@ export default function Dashboard({ initial }: { initial: Transaction[] }) {
           {view === "debit" && (
             <CardView cards={DEBIT_CARDS} transactions={sorted} onNew={openNew} onEdit={openEdit} onDelete={handleDelete} />
           )}
-          {view === "credit" && (
-            <CardView cards={CREDIT_CARDS} transactions={sorted} onNew={openNew} onEdit={openEdit} onDelete={handleDelete} />
-          )}
           {view === "savings" && (
             <CardView cards={SAVINGS_ACCOUNTS} transactions={sorted} onNew={openNew} onEdit={openEdit} onDelete={handleDelete} />
+          )}
+          {view === "credit" && (
+            <CardView cards={CREDIT_CARD_NAMES} transactions={sorted} onNew={openNew} onEdit={openEdit} onDelete={handleDelete} isCredit />
+          )}
+          {view === "debts" && (
+            <LoansView />
           )}
         </main>
       </div>

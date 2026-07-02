@@ -1,5 +1,5 @@
 import { db } from "@/db/client";
-import { transactions, installments } from "@/db/schema";
+import { loans } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
@@ -7,20 +7,20 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const { id } = await params;
   const body = await req.json();
   const vals: Record<string, unknown> = {};
+  if (body.person !== undefined) vals.person = body.person;
   if (body.desc !== undefined) vals.desc = body.desc;
   if (body.amount !== undefined) vals.amount = parseFloat(body.amount);
-  if (body.type !== undefined) vals.type = body.type;
-  if (body.category !== undefined) vals.category = body.category;
-  if (body.card !== undefined) vals.card = body.card;
-  if (body.date !== undefined) vals.date = body.date;
+  if (body.lentDate !== undefined) vals.lentDate = body.lentDate;
+  if (body.dueDate !== undefined) vals.dueDate = body.dueDate;
+  if (body.status !== undefined) vals.status = body.status;
+  if (body.paidAmount !== undefined) vals.paidAmount = parseFloat(body.paidAmount);
 
-  const [row] = await db.update(transactions).set(vals).where(eq(transactions.id, Number(id))).returning();
+  const [row] = await db.update(loans).set(vals).where(eq(loans.id, Number(id))).returning();
   return NextResponse.json(row);
 }
 
 export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  await db.delete(installments).where(eq(installments.transactionId, Number(id)));
-  await db.delete(transactions).where(eq(transactions.id, Number(id)));
+  await db.delete(loans).where(eq(loans.id, Number(id)));
   return NextResponse.json({ ok: true });
 }

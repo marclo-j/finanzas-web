@@ -1,6 +1,6 @@
 "use client";
 
-import { GridIcon, ListIcon, CardIcon, ClockIcon, PiggyIcon } from "./Icons";
+import { GridIcon, ListIcon, CardIcon, ClockIcon, PiggyIcon, DebtIcon } from "./Icons";
 
 interface Props {
   view: string;
@@ -13,6 +13,7 @@ const ITEMS: { label: string; labelShort: string; v: string; Icon: React.FC }[] 
   { label: "Débito",         labelShort: "Débito", v: "debit",         Icon: CardIcon },
   { label: "Crédito",        labelShort: "Crédito",v: "credit",        Icon: ClockIcon },
   { label: "Ahorro",         labelShort: "Ahorro", v: "savings",       Icon: PiggyIcon },
+  { label: "Deudas",         labelShort: "Deudas", v: "debts",         Icon: DebtIcon },
 ];
 
 export default function Sidebar({ view, onViewChange }: Props) {

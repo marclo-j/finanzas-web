@@ -63,10 +63,10 @@ const CARD_CONFIG: Record<string, {
     textColor: "#1B2D55",
     fixedBalance: 54406,
   },
-  "Cuenta Millonaria - Interbank": {
-    logo: "/INTERBANK.svg",
-    bg: "linear-gradient(135deg, #00853e 0%, #00b359 60%, #006e34 100%)",
-    glow: "rgba(0,133,62,.45)",
+  "Efectibank": {
+    logo: "/efectibank.webp",
+    bg: "linear-gradient(135deg, #020A10 0%, #216EF9 60%, #020A10 100%)",
+    glow: "rgba(33,110,249,.45)",
     logoSize: 52,
     fixedBalance: 1554348,
   },

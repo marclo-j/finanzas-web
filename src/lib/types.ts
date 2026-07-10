@@ -74,7 +74,7 @@ export const CREDIT_CARDS_CONFIG: CardConfig[] = [
   { name: "IO Crédito",   billingDay: 25, paymentDay: 12 },
   { name: "BBVA Crédito", billingDay: 10, paymentDay: 25 },
 ];
-export const SAVINGS_ACCOUNTS = ["Pichincha", "Cuenta Millonaria - Interbank"] as const;
+export const SAVINGS_ACCOUNTS = ["Pichincha", "Efectibank"] as const;
 
 export const CREDIT_CARD_NAMES = CREDIT_CARDS_CONFIG.map(c => c.name);
 export const CARDS = [...DEBIT_CARDS, ...CREDIT_CARD_NAMES, ...SAVINGS_ACCOUNTS] as const;

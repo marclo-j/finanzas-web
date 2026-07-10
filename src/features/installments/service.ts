@@ -8,10 +8,14 @@ export const installmentService = {
       card: card ?? undefined,
     });
 
+    const existingTxIds = new Set(realInstallments.map(i => i.transactionId));
+
     const singles: typeof realInstallments = [];
     if (card) {
       const singleTxns = await transactionRepository.findByCard(card);
       for (const t of singleTxns) {
+        if (t.type !== "egreso") continue;
+        if (existingTxIds.has(t.id)) continue;
         const dueDate = computeInstallmentDate(t.date, 1, card);
         if (month && dueDate.slice(0, 7) !== month) continue;
         singles.push({
@@ -30,6 +34,10 @@ export const installmentService = {
     }
 
     return [...realInstallments, ...singles];
+  },
+
+  async update(id: number, data: Record<string, unknown>) {
+    return installmentRepository.update(id, data as any);
   },
 
   async create(data: Record<string, unknown>) {

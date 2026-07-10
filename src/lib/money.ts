@@ -1,5 +1,6 @@
 export function toCentavos(amount: string | number): number {
-  return Math.round(typeof amount === "string" ? parseFloat(amount) : amount);
+  const num = typeof amount === "string" ? parseFloat(amount) : amount;
+  return Math.round(num * 100);
 }
 
 export function formatCurrency(centavos: number, currency = "PEN"): string {

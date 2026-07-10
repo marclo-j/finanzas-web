@@ -11,6 +11,7 @@ import { PlusIcon } from "@/components/ui/Icons";
 interface Props {
   cards: readonly string[];
   transactions: Transaction[];
+  initialPaidTotals?: Record<string, number>;
   onNew: (defaultCard: string) => void;
   onEdit: (t: Transaction) => void;
   onDelete: (id: number) => void;
@@ -71,12 +72,19 @@ const CARD_CONFIG: Record<string, {
   },
 };
 
-export default function CardView({ cards, transactions, onNew, onEdit, onDelete, isCredit }: Props) {
+export default function CardView({ cards, transactions, initialPaidTotals, onNew, onEdit, onDelete, isCredit }: Props) {
   const [selected, setSelected] = useState(cards[0]);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileIdx, setMobileIdx] = useState(0);
   const [tab, setTab] = useState<"historial" | "cuotas">("historial");
   const [allInstallments, setAllInstallments] = useState<Installment[]>([]);
+  const [paidTotals, setPaidTotals] = useState<Record<string, number>>(initialPaidTotals ?? {});
+
+  function handleInstallmentToggle(inst: Installment, nextStatus: "paid" | "pending") {
+    const card = inst.card ?? selected;
+    const diff = nextStatus === "paid" ? inst.amount : -inst.amount;
+    setPaidTotals(prev => ({ ...prev, [card]: (prev[card] ?? 0) + diff }));
+  }
   const filtered = transactions.filter(t => t.card === selected);
 
   useEffect(() => {
@@ -105,7 +113,7 @@ export default function CardView({ cards, transactions, onNew, onEdit, onDelete,
     const txns  = transactions.filter(t => t.card === card);
     const ing   = txns.filter(t => t.type === "ingreso").reduce((s, t) => s + t.amount, 0);
     const egr   = txns.filter(t => t.type === "egreso" ).reduce((s, t) => s + t.amount, 0);
-    const saldo = (cfg?.fixedBalance ?? 0) + ing - egr;
+    const saldo = (cfg?.fixedBalance ?? 0) + ing - egr + (paidTotals[card] ?? 0);
     const tc = cfg?.textColor;
     const toRgba = (hex: string, a: number) => `rgba(${parseInt(hex.slice(1,3),16)},${parseInt(hex.slice(3,5),16)},${parseInt(hex.slice(5,7),16)},${a})`;
     const ccCfg = isCredit ? getCardConfig(card) : undefined;
@@ -364,7 +372,7 @@ export default function CardView({ cards, transactions, onNew, onEdit, onDelete,
       {tab === "historial" || !isCredit ? (
         <TxnTable transactions={filtered} onEdit={onEdit} onDelete={onDelete} />
       ) : (
-        <InstallmentList installments={allInstallments} />
+        <InstallmentList installments={allInstallments} onToggle={handleInstallmentToggle} />
       )}
     </div>
   );

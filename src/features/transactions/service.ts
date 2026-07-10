@@ -15,7 +15,7 @@ export const transactionService = {
   async create(input: CreateInput) {
     const amountCents = toCentavos(input.amount);
 
-    if (input.installments > 1) {
+    if (input.installments > 1 && input.type === "egreso") {
       const groupId = crypto.randomUUID();
       const tx = await transactionRepository.create({
         desc: input.desc,

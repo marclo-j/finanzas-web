@@ -18,7 +18,7 @@ export default function TxnModal({ open, editing, defaultCard, onClose, onSave, 
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0];
     setForm(editing ? {
-      desc: editing.desc, amount: String(editing.amount), type: editing.type,
+      desc: editing.desc, amount: (editing.amount / 100).toFixed(2), type: editing.type,
       category: editing.category, card: editing.card, date: editing.date,
       installments: editing.installments ?? 1,
     } : { desc: "", amount: "0", type: "egreso", category: "Alimentación", card: defaultCard ?? CARDS[0], date: today, installments: 1 });

@@ -21,10 +21,10 @@ export default function LoanModal({ open, editing, onClose, onSave, onDelete }: 
       setForm({
         person: editing.person,
         desc: editing.desc,
-        amount: String(editing.amount),
+        amount: (editing.amount / 100).toFixed(2),
         lentDate: editing.lentDate,
         dueDate: editing.dueDate,
-        paidAmount: String(editing.paidAmount),
+        paidAmount: (editing.paidAmount / 100).toFixed(2),
       });
     } else {
       const today = new Date().toISOString().split("T")[0];

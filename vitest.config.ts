@@ -31,8 +31,8 @@ export default defineConfig({
     setupFiles: ["./src/__tests__/setup.ts"],
     fileParallelism: false,
     env: {
-      DATABASE_URL: process.env.TEST_DATABASE_URL || "",
-      TURSO_AUTH_TOKEN: process.env.TEST_TURSO_AUTH_TOKEN || "",
+      DATABASE_URL: process.env.TEST_DATABASE_URL || process.env.DATABASE_URL || "",
+      TURSO_AUTH_TOKEN: process.env.TEST_TURSO_AUTH_TOKEN || process.env.TURSO_AUTH_TOKEN || "",
     },
   },
 });

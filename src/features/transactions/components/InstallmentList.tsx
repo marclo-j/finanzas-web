@@ -1,9 +1,11 @@
+import { useEffect, useState } from "react";
 import type { Installment } from "@/lib/types";
 import { fmt, fmtDate, fmtMonth } from "@/lib/utils";
-import { CalendarIcon, CheckIcon } from "@/components/ui/Icons";
+import { CalendarIcon } from "@/components/ui/Icons";
 
 interface Props {
   installments: Installment[];
+  onToggle?: (inst: Installment, nextStatus: "paid" | "pending") => void;
 }
 
 const S = {
@@ -13,8 +15,56 @@ const S = {
   td: { padding: "11px 16px", fontSize: 13, borderBottom: "1px solid var(--border)", verticalAlign: "middle" as const },
 };
 
-export default function InstallmentList({ installments }: Props) {
-  if (installments.length === 0) {
+export default function InstallmentList({ installments: initial, onToggle }: Props) {
+  const [list, setList] = useState(initial);
+
+  useEffect(() => { setList(initial); }, [initial]);
+
+  async function toggleStatus(inst: Installment) {
+    const nextStatus = inst.status === "paid" ? "pending" : "paid";
+    const prevStatus = inst.status;
+
+    setList(prev => prev.map(i => i.id === inst.id ? { ...i, status: nextStatus } : i));
+
+    try {
+      if (inst.id < 0) {
+        const res = await fetch("/api/installments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            transactionId: inst.transactionId,
+            number: inst.number,
+            amount: inst.amount,
+            dueDate: inst.dueDate,
+            status: nextStatus,
+          }),
+        });
+        if (res.ok) {
+          const created = await res.json();
+          const merged: Installment = { ...inst, id: created.id, paidAt: created.paidAt, status: nextStatus };
+          setList(prev => prev.map(i => i.id === inst.id ? merged : i));
+          onToggle?.(merged, nextStatus);
+        } else {
+          setList(prev => prev.map(i => i.id === inst.id ? { ...i, status: prevStatus } : i));
+        }
+      } else {
+        const res = await fetch(`/api/installments/${inst.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: nextStatus }),
+        });
+        if (res.ok) {
+          onToggle?.(inst, nextStatus);
+        } else {
+          setList(prev => prev.map(i => i.id === inst.id ? { ...i, status: prevStatus } : i));
+        }
+      }
+    } catch {
+      setList(prev => prev.map(i => i.id === inst.id ? { ...i, status: prevStatus } : i));
+    }
+  }
+
+  if (list.length === 0) {
     return (
       <div style={{ textAlign: "center", padding: 32, color: "var(--muted)", fontSize: 13 }}>
         No hay cuotas para esta tarjeta. Agrega una transacción con cuotas desde el historial.
@@ -23,7 +73,7 @@ export default function InstallmentList({ installments }: Props) {
   }
 
   const byMonth: Record<string, Installment[]> = {};
-  installments.forEach(inst => {
+  list.forEach(inst => {
     if (!inst.dueDate) return;
     const month = inst.dueDate.slice(0, 7);
     if (!byMonth[month]) byMonth[month] = [];
@@ -35,7 +85,7 @@ export default function InstallmentList({ installments }: Props) {
     <div>
       {sortedMonths.map(month => {
         const insts = byMonth[month];
-        const total = insts.reduce((s, i) => s + i.amount, 0);
+        const pendingTotal = insts.filter(i => i.status === "pending").reduce((s, i) => s + i.amount, 0);
         const paidCount = insts.filter(i => i.status === "paid").length;
         const allPaid = paidCount === insts.length;
 
@@ -59,7 +109,7 @@ export default function InstallmentList({ installments }: Props) {
                 </span>
               </div>
               <div style={{ fontSize: 15, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
-                {fmt(total)}
+                {fmt(pendingTotal)}
               </div>
             </div>
 
@@ -91,15 +141,20 @@ export default function InstallmentList({ installments }: Props) {
                       {fmt(inst.amount)}
                     </td>
                     <td style={S.td}>
-                      <span style={{
-                        display: "inline-flex", alignItems: "center", padding: "3px 9px", borderRadius: 20,
-                        fontSize: 11, fontWeight: 600, gap: 4,
-                        background: inst.status === "paid" ? "var(--green-lo)" : "var(--red-lo)",
-                        color:      inst.status === "paid" ? "var(--green)"    : "var(--red)",
-                      }}>
-                        {inst.status === "paid" && <CheckIcon />}
-                        {inst.status === "paid" ? "Pagada" : "Pendiente"}
-                      </span>
+                      <select
+                        value={inst.status}
+                        onChange={() => toggleStatus(inst)}
+                        style={{
+                          border: "1px solid var(--border)", borderRadius: 6, padding: "4px 8px",
+                          fontSize: 11, fontWeight: 600, cursor: "pointer",
+                          background: inst.status === "paid" ? "var(--green-lo)" : "var(--red-lo)",
+                          color: inst.status === "paid" ? "var(--green)" : "var(--red)",
+                          outline: "none",
+                        }}
+                      >
+                        <option value="pending">Pendiente</option>
+                        <option value="paid">Pagado</option>
+                      </select>
                     </td>
                   </tr>
                 ))}

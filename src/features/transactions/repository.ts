@@ -1,6 +1,6 @@
 import { getDb } from "@/db/client";
 import { transactions, installments } from "@/db/schema";
-import { desc, eq, and, SQL } from "drizzle-orm";
+import { desc, eq, and, SQL, sql } from "drizzle-orm";
 import type { NewInstallment } from "@/db/schema";
 
 export const transactionRepository = {
@@ -60,12 +60,28 @@ export const installmentRepository = {
       .where(and(...conditions));
   },
 
+  getPaidTotalByCard() {
+    return getDb()
+      .select({
+        card: transactions.card,
+        paid: sql<number>`sum(${installments.amount})`.as('paid'),
+      })
+      .from(installments)
+      .innerJoin(transactions, eq(installments.transactionId, transactions.id))
+      .where(eq(installments.status, 'paid'))
+      .groupBy(transactions.card);
+  },
+
   createMany(data: NewInstallment[]) {
     return getDb().insert(installments).values(data).returning();
   },
 
   create(data: NewInstallment) {
     return getDb().insert(installments).values(data).returning().then(r => r[0]);
+  },
+
+  update(id: number, data: Partial<typeof installments.$inferInsert>) {
+    return getDb().update(installments).set(data).where(eq(installments.id, id)).returning().then(r => r[0]);
   },
 
   deleteByTransactionId(transactionId: number) {

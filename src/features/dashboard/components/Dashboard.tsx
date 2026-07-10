@@ -21,7 +21,7 @@ const VIEW_TITLES: Record<string, string> = {
   debts:        "Deudas",
 };
 
-export default function Dashboard({ initial }: { initial: Transaction[] }) {
+export default function Dashboard({ initial, initialPaidTotals }: { initial: Transaction[]; initialPaidTotals?: Record<string, number> }) {
   const [txns, setTxns]           = useState<Transaction[]>(initial);
   const [view, setView]           = useState("dashboard");
   const [dark, setDark]           = useState(false);
@@ -135,13 +135,13 @@ export default function Dashboard({ initial }: { initial: Transaction[] }) {
           )}
 
           {view === "debit" && (
-            <CardView cards={DEBIT_CARDS} transactions={sorted} onNew={openNew} onEdit={openEdit} onDelete={handleDelete} />
+            <CardView cards={DEBIT_CARDS} transactions={sorted} initialPaidTotals={initialPaidTotals} onNew={openNew} onEdit={openEdit} onDelete={handleDelete} />
           )}
           {view === "savings" && (
-            <CardView cards={SAVINGS_ACCOUNTS} transactions={sorted} onNew={openNew} onEdit={openEdit} onDelete={handleDelete} />
+            <CardView cards={SAVINGS_ACCOUNTS} transactions={sorted} initialPaidTotals={initialPaidTotals} onNew={openNew} onEdit={openEdit} onDelete={handleDelete} />
           )}
           {view === "credit" && (
-            <CardView cards={CREDIT_CARD_NAMES} transactions={sorted} onNew={openNew} onEdit={openEdit} onDelete={handleDelete} isCredit />
+            <CardView cards={CREDIT_CARD_NAMES} transactions={sorted} initialPaidTotals={initialPaidTotals} onNew={openNew} onEdit={openEdit} onDelete={handleDelete} isCredit />
           )}
           {view === "debts" && (
             <LoansView />
